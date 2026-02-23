@@ -65,9 +65,10 @@ describe('connect', function(){ this.timeout(25000);
                 */
                 //
                 //-- REVIEW-DELETE START --//
+                let review_id = '181';
                 let user = Data_Logic.get(User_Table.USER,'522');
                 let parent = Data_Logic.get(Review_Table.BLANK,'518');
-                const [biz_error,biz_data] = await Review_Data.delete(database,parent.table,parent.id,'795');
+                const [biz_error,biz_data] = await Review_Data.delete(database,parent.table,parent.id,review_id);
                 //-- REVIEW-DELETE END --//
                 //
                 //-- REVIEW-GET START --//
