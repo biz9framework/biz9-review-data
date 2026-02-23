@@ -57,7 +57,7 @@ class Review_Data {
 					}
 				},
 		]).then(result => {
-				callback([error,data.review]);
+				callback([error,data]);
 			}).catch(err => {
 				Log.error("Review-Data-Portal",err);
 				callback([err,[]]);
@@ -103,7 +103,6 @@ class Review_Data {
 					let foreign_user = Data_Logic.get_foreign(Data_Value_Type.ONE,Review_Table.USER,Data_Field.ID,Data_Field.USER_ID,{title:'user'});
 					let option = {foreigns:[foreign_user]};
 					const [biz_error,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,option);
-                    Log.w('rrr',biz_data);
 					if(biz_error){
 						error=Log.append(error,biz_error);
 					}else{
@@ -131,7 +130,6 @@ class Review_Data {
 				//review_post
 				async function(call){
 					const [biz_error,biz_data] = await Data.delete(database,Review_Table.REVIEW,review.id);
-                    Log.w('44',biz_data);
 					if(biz_error){
 						error=Log.append(error,biz_error);
 					}else{
@@ -141,7 +139,6 @@ class Review_Data {
 				//get_parent_item
 				async function(call){
 					const [biz_error,biz_data] = await Data.get(database,parent_table,parent_id);
-                    Log.w('55',biz_data);
 					if(biz_error){
 						error=Log.append(error,biz_error);
 					}else{
@@ -150,7 +147,7 @@ class Review_Data {
 				},
 				//post_item
 				async function(call){
-					if(!Str.check_is_null(data.parent_item.id)){
+					if(!Str.check_is_null(data.parent_item.id) && data.review.delete_count>0){
 						//rating_count
 						data.parent_item.rating_count = !Str.check_is_null(data.parent_item.rating_count) ? parseInt(data.parent_item.rating_count) - 1 :parseInt(review.rating);
 						//review_count
