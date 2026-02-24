@@ -16,7 +16,7 @@ class Review_Data {
 	static post = async(database,parent_table,parent_id,user_id,post_review,option) => {
 		return new Promise((callback) => {
 			let error = null;
-			let data = Data_Logic.get(Review_Table.REVIEW,0);
+			let data = {};
 			let review = Review_Logic.get(parent_table,parent_id,user_id,post_review.title,post_review.comment,post_review.rating);
 			option = !Obj.check_is_empty(option) ? option : {};
 			async.series([
