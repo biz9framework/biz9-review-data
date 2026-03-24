@@ -23,21 +23,13 @@ class Review_Data {
 				//review_post
 				async function(call){
 					const [biz_error,biz_data] = await Data.post(database,Review_Table.REVIEW,review);
-					if(biz_error){
-						error=Log.append(error,biz_error);
-					}else{
-						data.review = biz_data;
-					}
+					data.review = biz_data;
 				},
 				//get_parent_item
 				async function(call){
 					let option = {};
 					const [biz_error,biz_data] = await Data.get(database,parent_table,parent_id,option);
-					if(biz_error){
-						error=Log.append(error,biz_error);
-					}else{
-						data.parent_item = biz_data;
-					}
+					data.parent_item = biz_data;
 				},
 				//post_item
 				async function(call){
@@ -49,11 +41,7 @@ class Review_Data {
 						//rating_avg
 						data.parent_item.rating_avg = !Str.check_is_null(data.parent_item.rating_avg) ? parseInt(data.parent_item.rating_count)  /  parseInt(data.parent_item.review_count) :parseInt(review.rating);
 						const [biz_error,biz_data] = await Data.post(database,parent_table,data.parent_item);
-						if(biz_error){
-							error=Log.append(error,biz_error);
-						}else{
-							data.parent_item = biz_data;
-						}
+						data.parent_item = biz_data;
 					}
 				},
 		]).then(result => {
@@ -73,14 +61,10 @@ class Review_Data {
 			async.series([
 				async function(call){
 					const [biz_error,biz_data] = await Portal.search(database,Review_Table.REVIEW,filter,sort_by,page_current,page_size,option);
-					if(biz_error){
-						error=Log.append(error,biz_error);
-					}else{
-						data.item_count = biz_data.item_count;
-						data.page_count = biz_data.page_count;
-						data.search = biz_data.search;
-						data.reviews = biz_data[Type.FIELD_ITEMS];
-					}
+					data.item_count = biz_data.item_count;
+					data.page_count = biz_data.page_count;
+					data.search = biz_data.search;
+					data.reviews = biz_data[Type.FIELD_ITEMS];
 				},
 			]).then(result => {
 				callback([error,data]);
@@ -103,14 +87,10 @@ class Review_Data {
 					let foreign_user = Data_Logic.get_foreign(Data_Value_Type.ONE,Review_Table.USER,Data_Field.ID,Data_Field.USER_ID,{title:'user'});
 					let option = {foreigns:[foreign_user]};
 					const [biz_error,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,option);
-					if(biz_error){
-						error=Log.append(error,biz_error);
-					}else{
-						data.item_count=biz_data.item_count;
-						data.page_count=biz_data.page_count;
-						data.search=biz_data.search;
-						data.reviews=biz_data[Data_Field.ITEMS];
-					}
+					data.item_count=biz_data.item_count;
+					data.page_count=biz_data.page_count;
+					data.search=biz_data.search;
+					data.reviews=biz_data[Data_Field.ITEMS];
 				},
 			]).then(result => {
 				callback([error,data]);
@@ -130,20 +110,12 @@ class Review_Data {
 				//review_post
 				async function(call){
 					const [biz_error,biz_data] = await Data.delete(database,Review_Table.REVIEW,review.id);
-					if(biz_error){
-						error=Log.append(error,biz_error);
-					}else{
-						data.review = biz_data;
-					}
+					data.review = biz_data;
 				},
 				//get_parent_item
 				async function(call){
 					const [biz_error,biz_data] = await Data.get(database,parent_table,parent_id);
-					if(biz_error){
-						error=Log.append(error,biz_error);
-					}else{
-						data.parent_item = biz_data;
-					}
+					data.parent_item = biz_data;
 				},
 				//post_item
 				async function(call){
@@ -156,11 +128,7 @@ class Review_Data {
 						data.parent_item.rating_avg = !Str.check_is_null(data.parent_item.rating_avg) ? parseInt(data.parent_item.rating_count)  /  parseInt(data.parent_item.review_count) :parseInt(review.rating);
 						const [biz_error,biz_data] = await Data.post(database,parent_table,data.parent_item);
                         Log.w('66',biz_data);
-						if(biz_error){
-							error=Log.append(error,biz_error);
-						}else{
-							data.parent_item = biz_data;
-						}
+						data.parent_item = biz_data;
 					}
 				},
 			]).then(result => {

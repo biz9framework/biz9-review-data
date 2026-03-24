@@ -17,6 +17,10 @@ const {Review_Data}=require("./index");
 /*
  * availble tests
 - connect
+- review_data_post
+- review_data_search
+- review_data_get
+- review_data_delete
 */
 /* --- TEST CONFIG START --- */
 const APP_ID = 'test-stage-feb23';
@@ -45,6 +49,7 @@ describe('connect', function(){ this.timeout(25000);
                 const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
                 database = biz_data;
             },
+
             async function(call){
                 //-->
                 let print_test = true;
@@ -93,4 +98,141 @@ describe('connect', function(){ this.timeout(25000);
             });
     });
 });
+//9_post - 9_review_post
+describe('review_data_post', function(){ this.timeout(25000);
+    it("_review_data_post", function(done){
+        console.log('REVIEW-DATA-POST-START');
+        let error=null;
+        let database = {};
+        let data = {};
+        let option = {};
+        let user = User_Logic.get_test_user();
+        let parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
+        let review = Review_Logic.get_test();
+        async.series([
+            async function(call){
+                const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
+                database = biz_data;
+            },
+            async function(call){
+                //user
+                const [biz_error,biz_data] = await Data.post(database,user.table,user);
+                user = biz_data;
+            },
+            async function(call){
+                //product
+                const [biz_error,biz_data] = await Data.post(database,parent.table,parent);
+                parent = biz_data;
+            },
+            async function(call){
+                const [biz_error,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
+                data = biz_data;
+                Log.w('biz_data',biz_data);
+                Log.w('biz_error',biz_error);
+            },
+            async function(call){
+                console.log('---user-start---');
+                console.log('ID='+user.id + '---UserName='+user.username+'---Email='+user.email);
+                console.log('---user-end---');
+                console.log('---parent-start---');
+                console.log('ID='+parent.id + '---Title='+parent.title);
+                console.log('---parent-end---');
+                console.log('---review-start---');
+                console.log('Review-Add='+data);
+                console.log('---review-end---');
+                console.log('REVIEW-DATA-POST-SUCCESS');
+            },
+        ],
+            function(error, result){
+                console.log('REVIEW-DATA-POST-DONE');
+                done();
+            });
+    });
+});
+
+//9_get - 9_review_get
+describe('review_data_get', function(){ this.timeout(25000);
+    it("_review_data_get", function(done){
+        console.log('REVIEW-DATA-GET-START');
+        let error=null;
+        let database = {};
+        let data = {};
+        let option = {};
+        let user_id = "699";
+        let parent_table = Store_Table.PRODUCT;
+        let parent_id = "315";
+        async.series([
+            async function(call){
+                const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
+                database = biz_data;
+            },
+            async function(call){
+                const [biz_error,biz_data] = await Review_Data.get(database,parent_table,parent_id,{},1,0);
+                data = biz_data;
+                Log.w('biz_data',biz_data);
+                Log.w('biz_error',biz_error);
+            },
+            async function(call){
+                console.log('---user-start---');
+                console.log('ID='+user_id);
+                console.log('---user-end---');
+                console.log('---parent-start---');
+                console.log('ID='+parent_id + '---Table='+parent_table);
+                console.log('---parent-end---');
+                console.log('---review-start---');
+                console.log('Review-Get='+data);
+                console.log('---review-end---');
+                console.log('REVIEW-DATA-GET-SUCCESS');
+            },
+        ],
+            function(error, result){
+                console.log('REVIEW-DATA-GET-DONE');
+                done();
+            });
+    });
+});
+//9_delete - 9_review_delete
+describe('review_data_delete', function(){ this.timeout(25000);
+    it("_review_data_delete", function(done){
+        console.log('REVIEW-DATA-DELETE-START');
+        let error=null;
+        let database = {};
+        let data = {};
+        let option = {};
+        let user_id = "303";
+        let parent_table = Store_Table.PRODUCT;
+        let parent_id = "315";
+        let review_id = "343";
+        async.series([
+            async function(call){
+                const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
+                database = biz_data;
+            },
+            async function(call){
+                const [biz_error,biz_data] = await Review_Data.delete(database,parent_table,parent_id,review_id);
+                data = biz_data;
+                Log.w('biz_data',biz_data);
+                Log.w('biz_error',biz_error);
+            },
+            async function(call){
+                console.log('---user-start---');
+                console.log('ID='+user_id);
+                console.log('---user-end---');
+                console.log('---parent-start---');
+                console.log('ID='+parent_id + '---Table='+parent_table);
+                console.log('---parent-end---');
+                console.log('---review-start---');
+                console.log('Review-Delete='+data);
+                console.log('---review-end---');
+                console.log('REVIEW-DATA-GET-SUCCESS');
+            },
+        ],
+            function(error, result){
+                console.log('REVIEW-DATA-GET-DONE');
+                done();
+            });
+    });
+});
+
+
 
