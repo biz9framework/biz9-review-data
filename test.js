@@ -43,6 +43,7 @@ const DATA_CONFIG ={
 class Project_Table {
     static BLANK='blank_biz';
     static PRODUCT='product_biz';
+    static USER='user_biz';
 }
 //9_connect - 9_test_connect
 describe('connect', function(){ this.timeout(25000);
@@ -133,9 +134,10 @@ describe('review_data_post', function(){ this.timeout(25000);
                 // -- new-product-end --
                 // -- update-product-start --
 
-                parent = Data_Logic.get(Project_Table.PRODUCT,'641');
+                parent = Data_Logic.get(Project_Table.PRODUCT,'293');
                 const [biz_response,biz_data] = await Data.get(database,parent.table,parent.id);
                 parent = biz_data;
+
 
                 // -- update-product-start --
             },
@@ -147,6 +149,7 @@ describe('review_data_post', function(){ this.timeout(25000);
            async function(call){
                 const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
                 review = biz_data.review;
+                parent = biz_data.parent;
             },
             async function(call){
                 console.log('---user-start---');
@@ -239,6 +242,42 @@ describe('review_data_delete', function(){ this.timeout(25000);
                 console.log('---parent-start---');
                 console.log('ID='+parent.id + '---Title='+parent.title);
                 console.log('Rating_Avg='+parent.rating_avg + '---Rating_Count='+parent.rating_count + '---Review_Count='+parent.review_count );
+                console.log('---parent-end---');
+               console.log('REVIEW-DATA-DELETE-SUCCESS');
+            },
+        ],
+            function(error, result){
+                Log.error('REVIEW-DATA-DELETE-DONE',error);
+                done();
+            });
+    });
+});
+//9_parent_search - 9_review_parent_search
+describe('review_data_parent_search', function(){ this.timeout(25000);
+    it("_review_data_parent_search", function(done){
+        console.log('REVIEW-DATA-PARENT-SEARCH-START');
+        let response={};
+        let database = {};
+        let data = {};
+        let option = {};
+        let parent_id = '293';
+        let parent_table = Project_Table.PRODUCT;
+        let user_table = Project_Table.USER;
+        async.series([
+            async function(call){
+                const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
+                database = biz_data;
+            },
+            async function(call){
+                const [biz_response,biz_data] = await Review_Data.parent_search(database,user_table,parent_table,parent_id,{},1,0);
+                data = biz_data;
+                response = biz_response;
+                Log.w('biz_data',data);
+                Log.w('biz_response',response);
+            },
+            async function(call){
+                console.log('---parent-start---');
+                console.log('ID='+parent_id);
                 console.log('---parent-end---');
                console.log('REVIEW-DATA-DELETE-SUCCESS');
             },

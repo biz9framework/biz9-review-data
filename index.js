@@ -7,7 +7,6 @@ Description: BiZ9 Framework: Review-Data
 const async = require('async');
 const {Scriptz}=require("biz9-scriptz");
 const {Database,Data}=require("/home/think1/www/doqbox/biz9-framework/biz9-data/source");
-const {User_Field,User_Type,User_Table,User_Logic}=require("/home/think1/www/doqbox/biz9-framework/biz9-user/source");
 const {Review_Field,Review_Table,Review_Logic}=require("/home/think1/www/doqbox/biz9-framework/biz9-review/source");
 const {Data_Logic,Data_Field,Data_Value_Type} = require("/home/think1/www/doqbox/biz9-framework/biz9-data-logic/source");
 const {Log,Str,Obj,DateTime}=require("/home/think1/www/doqbox/biz9-framework/biz9-utility/source");
@@ -37,28 +36,28 @@ class Review_Data {
             });
         });
     };
-    //9_review_search 9_search
-    static search = (database,filter,sort_by,page_current,page_size,option) => {
-        return new Promise((callback) => {
-            let data = {item_count:0,page_count:1,filter:{},table:Review_Table.REVIEW,reviews:[]};
-            let response = {};
-            option = !Obj.check_is_empty(option)  ? option : {};
-            async.series([
-                async function(call){
-                    const [biz_response,biz_data] = await Data.search(database,Review_Table.REVIEW,filter,sort_by,page_current,page_size,option);
-                    data.item_count = biz_data.item_count;
-                    data.page_count = biz_data.page_count;
-                    data.search = biz_data.search;
-                    data.reviews = biz_data[Type.FIELD_ITEMS];
-                },
-            ]).then(result => {
-                callback([response,data]);
-            }).catch(err => {
-                Log.error("Review-Search",err);
-            });
-        });
-    };
-    //9_review_get 9_get
+   	//9_review_search 9_search
+	static parent_search = (database,user_table,parent_table,parent_id,sort_by,page_current,page_size) => {
+		return new Promise((callback) => {
+			let response = {};
+			let data = {};
+			async.series([
+				async function(call){
+                    let option_parent_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,parent_table,Data_Field.ID,Data_Field.PARENT_ID,{title:Data_Field.PARENT});
+                    let option_user_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,user_table,Data_Field.ID,Data_Field.USER_ID,{title:Data_Field.USER});
+					let search = Data_Logic.get_search(Review_Table.REVIEW,{parent_id:parent_id},{},page_current,page_size);
+					const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,{foreigns:[option_parent_foreign,option_user_foreign]});
+                    response = biz_response;
+                    data = biz_data;
+				},
+			]).then(result => {
+				callback([response,data]);
+			}).catch(err => {
+				Log.error("Review-Data-Parent-Search",err);
+			});
+		});
+	};
+	//9_review_get 9_get
     static get = async (database,parent_table,parent_id,sort_by,page_current,page_size) => {
         return new Promise((callback) => {
             let response = {};
@@ -91,11 +90,9 @@ class Review_Data {
             let data = {parent:Data_Logic.get(parent_table,parent_id),review:Data_Logic.get(Review_Table.REVIEW,0)};
             let review = Data_Logic.get(Review_Table.REVIEW,review_id);
             async.series([
-                //review_post
+                //review_delete
                 async function(call){
                     const [biz_response,biz_data] = await Data.delete(database,Review_Table.REVIEW,review.id);
-                    Log.w('22_review_delete',biz_data);
-                    Log.w('22_review_delete',biz_response);
                     data.review = biz_data;
                 },
                 async function(call){
