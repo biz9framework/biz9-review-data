@@ -25,29 +25,29 @@ class Review_Data {
 					const [biz_response,biz_data] = await Data.post(database,Review_Table.REVIEW,review);
 					data.review = biz_data;
 				},
-				//get_parent_item
 				async function(call){
-					let option = {};
-					const [biz_response,biz_data] = await Data.get(database,parent_table,parent_id,option);
-					data.parent_item = biz_data;
+					const [biz_response,biz_data] = await Review_Data.caculate(database,parent_table,parent_id);
+					data.parent = biz_data;
 				},
 				//post_item
+                /*
 				async function(call){
-					if(!Str.check_is_null(data.parent_item.id)){
+					if(!Str.check_is_null(data.parent.id)){
 						//rating_count
-						data.parent_item.rating_count = !Str.check_is_null(data.parent_item.rating_count) ? parseInt(data.parent_item.rating_count) + parseInt(review.rating) :parseInt(review.rating);
+						data.parent.rating_count = !Str.check_is_null(data.parent.rating_count) ? parseInt(data.parent.rating_count) + parseInt(review.rating) :parseInt(review.rating);
 						//review_count
-						data.parent_item.review_count = !Str.check_is_null(data.parent_item.review_count) ? parseInt(data.parent_item.review_count) + 1 : 1;
+						data.parent.review_count = !Str.check_is_null(data.parent.review_count) ? parseInt(data.parent.review_count) + 1 : 1;
 						//rating_avg
-						data.parent_item.rating_avg = !Str.check_is_null(data.parent_item.rating_avg) ? parseInt(data.parent_item.rating_count)  /  parseInt(data.parent_item.review_count) :parseInt(review.rating);
-						const [biz_response,biz_data] = await Data.post(database,parent_table,data.parent_item);
-						data.parent_item = biz_data;
+						data.parent.rating_avg = !Str.check_is_null(data.parent.rating_avg) ? parseInt(data.parent.rating_count)  /  parseInt(data.parent.review_count) :parseInt(review.rating);
+						const [biz_response,biz_data] = await Data.post(database,parent_table,data.parent);
+						data.parent = biz_data;
 					}
 				},
+                */
 		]).then(result => {
 				callback([response,data]);
 			}).catch(err => {
-				Log.error("Review-Data-Portal",err);
+				Log.error("Review-Data",err);
 			});
 		});
 	};
@@ -59,7 +59,7 @@ class Review_Data {
 			option = !Obj.check_is_empty(option)  ? option : {};
 			async.series([
 				async function(call){
-					const [biz_response,biz_data] = await Portal.search(database,Review_Table.REVIEW,filter,sort_by,page_current,page_size,option);
+					const [biz_response,biz_data] = await Data.search(database,Review_Table.REVIEW,filter,sort_by,page_current,page_size,option);
 					data.item_count = biz_data.item_count;
 					data.page_count = biz_data.page_count;
 					data.search = biz_data.search;
@@ -102,40 +102,79 @@ class Review_Data {
 	static delete = async(database,parent_table,parent_id,review_id) => {
 		return new Promise((callback) => {
 			let response = {};
-			let data = {parent_item:Data_Logic.get(parent_table,parent_id),review:Data_Logic.get(Review_Table.REVIEW,0)};
+			let data = {parent:Data_Logic.get(parent_table,parent_id),review:Data_Logic.get(Review_Table.REVIEW,0)};
 			let review = Data_Logic.get(Review_Table.REVIEW,review_id);
 			async.series([
 				//review_post
 				async function(call){
 					const [biz_response,biz_data] = await Data.delete(database,Review_Table.REVIEW,review.id);
+                    Log.w('22_review_delete',biz_data);
+                    Log.w('22_review_delete',biz_response);
 					data.review = biz_data;
 				},
-				//get_parent_item
-				async function(call){
-					const [biz_response,biz_data] = await Data.get(database,parent_table,parent_id);
-					data.parent_item = biz_data;
-				},
-				//post_item
-				async function(call){
-					if(!Str.check_is_null(data.parent_item.id) && data.review.review_count>0){
-						//rating_count
-						data.parent_item.rating_count = !Str.check_is_null(data.parent_item.rating_count) ? parseInt(data.parent_item.rating_count) - 1 :parseInt(review.rating);
-						//review_count
-						data.parent_item.review_count = !Str.check_is_null(data.parent_item.review_count) ? parseInt(data.parent_item.review_count) - 1 : 1;
-						//rating_avg
-						data.parent_item.rating_avg = !Str.check_is_null(data.parent_item.rating_avg) ? parseInt(data.parent_item.rating_count)  /  parseInt(data.parent_item.review_count) :parseInt(review.rating);
-						const [biz_response,biz_data] = await Data.post(database,parent_table,data.parent_item);
-						data.parent_item = biz_data;
-					}
+            	async function(call){
+					const [biz_response,biz_data] = await Review_Data.caculate(database,parent_table,parent_id);
+					data.parent = biz_data;
 				},
 			]).then(result => {
 				callback([response,data]);
 			}).catch(err => {
-				Log.error("Review-Data-Delete-Portal",err);
+				Log.error("Review-Data-Delete",err);
 			});
 		});
 	};
+    //9_parent_review_caculate 9_parent_caculate
+	static caculate = (database,parent_table,parent_id) => {
+		return new Promise((callback) => {
+			let data = {};
+			let response = {};
+            let parent = {};
+            let reviews = [];
+			async.series([
+			    //get_parent
+				async function(call){
+                    Log.w('11_parent_table',parent_table);
+                    Log.w('11_parent_id',parent_id);
+					const [biz_response,biz_data] = await Data.get(database,parent_table,parent_id);
+					parent = biz_data;
+				},
+				async function(call){
+                    let search = Data_Logic.get_search(Review_Table.REVIEW,{parent_id:parent_id},{},1,0);
+					const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,{},search.page_current,search.page_size);
+					reviews = biz_data.items;
+                    Log.w('review_count',reviews.length);
+				},
+	            async function(call){
+                    let rating_count = 0;
+                    let review_count = reviews.length;
+                    let rating_avg = 0;
+                    if(review_count > 0){
+                        for(const review of reviews){
+                            if(Str.check_is_null(review.rating)){
+                                review.rating = 0;
+                            }
+                            rating_count = parseInt(rating_count) + parseInt(review.rating);
+                            //rating_count = !Str.check_is_null(parent.rating_count) ? parseInt(parent.rating_count) + parseInt(review.rating) : parseInt(review.rating);
+	                        //rating_avg = !Str.check_is_null(parent.rating_avg) ? parseInt(parent.rating_count)  /  parseInt(parent.review_count) :parseInt(review.rating);
+                        }
+                    }
+                    parent.rating_count = rating_count; // = items count
+                    parent.review_count = review_count; //
+                    parent.rating_avg = parent.rating_count / parent.review_count;
+                    Log.w('33_caculate_parent',parent);
+					const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
+					data.parent = biz_data;
+                },
+			]).then(result => {
+				callback([response,parent]);
+			}).catch(err => {
+				Log.error("Review-Caculate",err);
+			});
+		});
+	};
+
 }
+
 module.exports = {
     Review_Data
 };

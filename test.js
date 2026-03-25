@@ -23,7 +23,7 @@ const {Review_Data}=require("./index");
 - review_data_search
 */
 /* --- TEST CONFIG START --- */
-const APP_ID = 'test-stage-feb23';
+const APP_ID = 'test-stage-march25';
 const DATA_CONFIG ={
     APP_ID:APP_ID,
     MONGO_IP:'0.0.0.0',
@@ -38,6 +38,12 @@ const DATA_CONFIG ={
 /* --- TEST CONFIG END --- */
 
 /* --- DATA CONFIG END --- */
+
+/* --- Project CONFIG START --- */
+class Project_Table {
+    static BLANK='blank_biz';
+    static PRODUCT='product_biz';
+}
 //9_connect - 9_test_connect
 describe('connect', function(){ this.timeout(25000);
     it("_connect", function(done){
@@ -106,8 +112,8 @@ describe('review_data_post', function(){ this.timeout(25000);
         let database = {};
         let data = {};
         let option = {};
+        let parent = {};
         let user = User_Logic.get_test_user();
-        let parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
         let review = Review_Logic.get_test();
         async.series([
             async function(call){
@@ -115,18 +121,32 @@ describe('review_data_post', function(){ this.timeout(25000);
                 database = biz_data;
             },
             async function(call){
+                // -- new-product-start --
+                /*
+                parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
+                parent.rating_avg = 0;
+                parent.rating_count = 0;
+                parent.review_count = 0;
+                const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
+                parent = biz_data;
+                */
+                // -- new-product-end --
+                // -- update-product-start --
+
+                parent = Data_Logic.get(Project_Table.PRODUCT,'641');
+                const [biz_response,biz_data] = await Data.get(database,parent.table,parent.id);
+                parent = biz_data;
+
+                // -- update-product-start --
+            },
+            async function(call){
                 //user
                 const [biz_response,biz_data] = await Data.post(database,user.table,user);
                 user = biz_data;
             },
-            async function(call){
-                //product
-                const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
-                parent = biz_data;
-            },
-            async function(call){
+           async function(call){
                 const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
-                data = biz_data;
+                review = biz_data.review;
             },
             async function(call){
                 console.log('---user-start---');
@@ -134,15 +154,16 @@ describe('review_data_post', function(){ this.timeout(25000);
                 console.log('---user-end---');
                 console.log('---parent-start---');
                 console.log('ID='+parent.id + '---Title='+parent.title);
+                console.log('Rating_Avg='+parent.rating_avg + '---Rating_Count='+parent.rating_count + '---Review_Count='+parent.review_count );
                 console.log('---parent-end---');
                 console.log('---review-start---');
-                console.log('Review-Add='+data);
+                console.log('ID='+review.id+'---Review-Title='+review.title +'---Review-Comment='+ review.comment);
                 console.log('---review-end---');
                 console.log('REVIEW-DATA-POST-SUCCESS');
             },
         ],
             function(error, result){
-                Log.w('REVIEW-DATA-POST-DONE',error);
+                console.log('REVIEW-DATA-POST-DONE');
                 done();
             });
     });
@@ -175,10 +196,11 @@ describe('review_data_get', function(){ this.timeout(25000);
                 console.log('ID='+user_id);
                 console.log('---user-end---');
                 console.log('---parent-start---');
-                console.log('ID='+parent_id + '---Table='+parent_table);
+                console.log('ID='+parent.id + '---Title='+parent.title);
+                console.log('Rating_Avg='+parent.rating_avg + '---Rating_Count='+parent.rating_count + '---Review_Count='+parent.review_count );
                 console.log('---parent-end---');
                 console.log('---review-start---');
-                console.log('Review-Get='+data);
+                console.log('Review-Title='+review.title +'Review-Comment='+ review.comment);
                 console.log('---review-end---');
                 console.log('REVIEW-DATA-GET-SUCCESS');
             },
@@ -197,10 +219,10 @@ describe('review_data_delete', function(){ this.timeout(25000);
         let database = {};
         let data = {};
         let option = {};
-        let user_id = "303";
+        let parent = {};
         let parent_table = Store_Table.PRODUCT;
-        let parent_id = "315";
-        let review_id = "343";
+        let parent_id = "641";
+        let review_id = "302";
         async.series([
             async function(call){
                 const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
@@ -209,24 +231,20 @@ describe('review_data_delete', function(){ this.timeout(25000);
             async function(call){
                 const [biz_response,biz_data] = await Review_Data.delete(database,parent_table,parent_id,review_id);
                 data = biz_data;
-                Log.w('biz_data',biz_data);
+                parent = biz_data.parent;
+                Log.w('biz_data_parent',parent);
                 Log.w('biz_response',biz_response);
             },
             async function(call){
-                console.log('---user-start---');
-                console.log('ID='+user_id);
-                console.log('---user-end---');
                 console.log('---parent-start---');
-                console.log('ID='+parent_id + '---Table='+parent_table);
+                console.log('ID='+parent.id + '---Title='+parent.title);
+                console.log('Rating_Avg='+parent.rating_avg + '---Rating_Count='+parent.rating_count + '---Review_Count='+parent.review_count );
                 console.log('---parent-end---');
-                console.log('---review-start---');
-                console.log('Review-Delete='+data);
-                console.log('---review-end---');
-                console.log('REVIEW-DATA-GET-SUCCESS');
+               console.log('REVIEW-DATA-DELETE-SUCCESS');
             },
         ],
             function(error, result){
-                Log.error('REVIEW-DATA-GET-DONE',error);
+                Log.error('REVIEW-DATA-DELETE-DONE',error);
                 done();
             });
     });
