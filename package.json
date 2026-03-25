@@ -1,6 +1,6 @@
 {
   "name": "biz9-review-data",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "** Description",
   "main": "index.js",
   "scripts": {
@@ -11,9 +11,8 @@
   "dependencies": {
     "async": "^3.2.6",
     "biz9-scriptz": "^5.8.25",
-    "biz9-utility": "^4.7.13"
+    "biz9-utility": "^4.7.36"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/biz9framework/biz9-review-data.git"

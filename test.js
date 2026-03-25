@@ -17,10 +17,10 @@ const {Review_Data}=require("./index");
 /*
  * availble tests
 - connect
-- review_data_post
-- review_data_search
 - review_data_get
 - review_data_delete
+- review_data_post
+- review_data_search
 */
 /* --- TEST CONFIG START --- */
 const APP_ID = 'test-stage-feb23';
@@ -41,12 +41,12 @@ const DATA_CONFIG ={
 //9_connect - 9_test_connect
 describe('connect', function(){ this.timeout(25000);
     it("_connect", function(done){
-        let error=null;
+        let response={};
         let database = {};
         let data = {};
         async.series([
             async function(call){
-                const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
+                const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
                 database = biz_data;
             },
 
@@ -58,8 +58,8 @@ describe('connect', function(){ this.timeout(25000);
                 //let parent = User_Logic.get_test_user();
                 let parent = Data_Logic.get(Review_Table.BLANK,0,{data:{field_1:'field_1'+Num.get_id(),field_2:'field_2'+Num.get_id()}});
                 //let sub_items = Data_Logic.get(Store_Table.PRODUCT,0,{test:true,count:20,data:Store_Logic.get_test_product()});
-                const [biz_error,biz_data] = await Data.post(database,parent.table,parent);
-                //const [biz_error,biz_data] = await Data.post_items(database,sub_items);
+                const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
+                //const [biz_response,biz_data] = await Data.post_items(database,sub_items);
                 */
                 // -- ITEM-POST -- END
                 //-- REVIEW-POST START --//
@@ -67,14 +67,14 @@ describe('connect', function(){ this.timeout(25000);
                 let user = Data_Logic.get(User_Table.USER,'869');
                 let parent = Data_Logic.get(Review_Table.BLANK,'705');
                 let review = Review_Logic.get_test();
-                const [biz_error,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
+                const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
                 */
                 //
                 //-- REVIEW-DELETE START --//
                 let review_id = '728';
                 let user = Data_Logic.get(User_Table.USER,'522');
                 let parent = Data_Logic.get(Review_Table.BLANK,'705');
-                const [biz_error,biz_data] = await Review_Data.delete(database,parent.table,parent.id,review_id);
+                const [biz_response,biz_data] = await Review_Data.delete(database,parent.table,parent.id,review_id);
                 //-- REVIEW-DELETE END --//
                 //
                 //-- REVIEW-GET START --//
@@ -82,7 +82,7 @@ describe('connect', function(){ this.timeout(25000);
                 let user = Data_Logic.get(User_Table.USER,'522');
                 let parent = Data_Logic.get(Review_Table.BLANK,'518');
                 let review = Review_Logic.get_test();
-                const [biz_error,biz_data] = await Review_Data.get(database,parent.table,parent.id,{},1,0);
+                const [biz_response,biz_data] = await Review_Data.get(database,parent.table,parent.id,{},1,0);
                 */
                 //-- REVIEW-GET END --//
 
@@ -93,7 +93,7 @@ describe('connect', function(){ this.timeout(25000);
             },
         ],
             function(error, result){
-                console.log('CONNECT-DONE');
+                Log.w('CONNECT-DONE',error);
                 done();
             });
     });
@@ -102,7 +102,7 @@ describe('connect', function(){ this.timeout(25000);
 describe('review_data_post', function(){ this.timeout(25000);
     it("_review_data_post", function(done){
         console.log('REVIEW-DATA-POST-START');
-        let error=null;
+        let response={};
         let database = {};
         let data = {};
         let option = {};
@@ -111,24 +111,22 @@ describe('review_data_post', function(){ this.timeout(25000);
         let review = Review_Logic.get_test();
         async.series([
             async function(call){
-                const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
+                const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
                 database = biz_data;
             },
             async function(call){
                 //user
-                const [biz_error,biz_data] = await Data.post(database,user.table,user);
+                const [biz_response,biz_data] = await Data.post(database,user.table,user);
                 user = biz_data;
             },
             async function(call){
                 //product
-                const [biz_error,biz_data] = await Data.post(database,parent.table,parent);
+                const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
                 parent = biz_data;
             },
             async function(call){
-                const [biz_error,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
+                const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
                 data = biz_data;
-                Log.w('biz_data',biz_data);
-                Log.w('biz_error',biz_error);
             },
             async function(call){
                 console.log('---user-start---');
@@ -144,7 +142,7 @@ describe('review_data_post', function(){ this.timeout(25000);
             },
         ],
             function(error, result){
-                console.log('REVIEW-DATA-POST-DONE');
+                Log.w('REVIEW-DATA-POST-DONE',error);
                 done();
             });
     });
@@ -154,7 +152,7 @@ describe('review_data_post', function(){ this.timeout(25000);
 describe('review_data_get', function(){ this.timeout(25000);
     it("_review_data_get", function(done){
         console.log('REVIEW-DATA-GET-START');
-        let error=null;
+        let response={};
         let database = {};
         let data = {};
         let option = {};
@@ -163,14 +161,14 @@ describe('review_data_get', function(){ this.timeout(25000);
         let parent_id = "315";
         async.series([
             async function(call){
-                const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
+                const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
                 database = biz_data;
             },
             async function(call){
-                const [biz_error,biz_data] = await Review_Data.get(database,parent_table,parent_id,{},1,0);
+                const [biz_response,biz_data] = await Review_Data.get(database,parent_table,parent_id,{},1,0);
                 data = biz_data;
                 Log.w('biz_data',biz_data);
-                Log.w('biz_error',biz_error);
+                Log.w('biz_response',biz_response);
             },
             async function(call){
                 console.log('---user-start---');
@@ -186,7 +184,7 @@ describe('review_data_get', function(){ this.timeout(25000);
             },
         ],
             function(error, result){
-                console.log('REVIEW-DATA-GET-DONE');
+                Log.error('REVIEW-DATA-GET-DONE',error);
                 done();
             });
     });
@@ -195,7 +193,7 @@ describe('review_data_get', function(){ this.timeout(25000);
 describe('review_data_delete', function(){ this.timeout(25000);
     it("_review_data_delete", function(done){
         console.log('REVIEW-DATA-DELETE-START');
-        let error=null;
+        let response={};
         let database = {};
         let data = {};
         let option = {};
@@ -205,14 +203,14 @@ describe('review_data_delete', function(){ this.timeout(25000);
         let review_id = "343";
         async.series([
             async function(call){
-                const [biz_error,biz_data] = await Database.get(DATA_CONFIG);
+                const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
                 database = biz_data;
             },
             async function(call){
-                const [biz_error,biz_data] = await Review_Data.delete(database,parent_table,parent_id,review_id);
+                const [biz_response,biz_data] = await Review_Data.delete(database,parent_table,parent_id,review_id);
                 data = biz_data;
                 Log.w('biz_data',biz_data);
-                Log.w('biz_error',biz_error);
+                Log.w('biz_response',biz_response);
             },
             async function(call){
                 console.log('---user-start---');
@@ -228,11 +226,9 @@ describe('review_data_delete', function(){ this.timeout(25000);
             },
         ],
             function(error, result){
-                console.log('REVIEW-DATA-GET-DONE');
+                Log.error('REVIEW-DATA-GET-DONE',error);
                 done();
             });
     });
 });
-
-
 
