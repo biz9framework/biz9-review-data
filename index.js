@@ -7,27 +7,44 @@ Description: BiZ9 Framework: Review-Data
 const async = require('async');
 const {Scriptz}=require("biz9-scriptz");
 const {Database,Data}=require("/home/think1/www/doqbox/biz9-framework/biz9-data/source");
-const {Review_Field,Review_Table,Review_Logic}=require("/home/think1/www/doqbox/biz9-framework/biz9-review/source");
+const {Review_Field,Review_Table,Review_Logic,Review_Response}=require("/home/think1/www/doqbox/biz9-framework/biz9-review/source");
 const {Data_Logic,Data_Field,Data_Value_Type} = require("/home/think1/www/doqbox/biz9-framework/biz9-data-logic/source");
-const {Log,Str,Obj,DateTime}=require("/home/think1/www/doqbox/biz9-framework/biz9-utility/source");
+const {Log,Str,Obj,DateTime,Response_Logic,Response_Field,Status_Type}=require("/home/think1/www/doqbox/biz9-framework/biz9-utility/source");
 class Review_Data {
     //9_review_post /9_post
     static post = async(database,parent_table,parent_id,user_id,post_review,option) => {
         return new Promise((callback) => {
-            let response = {};
+            let response=Response_Logic.get();
             let data = {};
             let review = Review_Logic.get(parent_table,parent_id,user_id,post_review.title,post_review.comment,post_review.rating);
             option = !Obj.check_is_empty(option) ? option : {};
             async.series([
+                async function(call) {
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_APP_ID,Status_Type.OK,database.data_config.APP_ID));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_PARENT_TABLE,Status_Type.OK,parent_table));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_REVIEW,Status_Type.OK,post_review));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_OPTION,Status_Type.OK,option));
+                },
+                //review
                 async function(call){
-                    //review
                     const [biz_response,biz_data] = await Data.post(database,Review_Table.REVIEW,review);
                     data.review = biz_data;
+                    response.messages.push(Response_Logic.get_message(Review_Response.RESPONSE_REVIEW,Status_Type.OK,data.review));
                 },
+                //parent
                 async function(call){
-                    //parent
                     const [biz_response,biz_data] = await Review_Data.caculate(database,parent_table,parent_id);
                     data.parent = biz_data;
+                    response.messages.push(Response_Logic.get_message(Review_Response.RESPONSE_PARENT,Status_Type.OK,data.parent));
+                },
+                //check all
+                async function(call){
+                    if(!Str.check_is_null(data.review.id)){
+                        response.messages.push(Response_Logic.get_message(Review_Response.POST_CONFIRM,Status_Type.SUCCESS,Review_Logic.get_message_by_response(Review_Response.POST_CONFIRM)));
+                    }else{
+                        response.messages.push(Response_Logic.get_message(Review_Response.POST_FAIL,Status_Type.SUCCESS,Review_Logic.get_message_by_response(Review_Response.POST_FAIL)));
+                    }
+                    response = Response_Logic.get_status(response);
                 },
             ]).then(result => {
                 callback([response,data]);
@@ -39,17 +56,35 @@ class Review_Data {
    	//9_review_search 9_search
 	static parent_search = (database,user_table,parent_table,parent_id,sort_by,page_current,page_size) => {
 		return new Promise((callback) => {
-			let response = {};
-			let data = {};
+		 let response=Response_Logic.get();
+            let data = {};
 			async.series([
+                async function(call) {
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_APP_ID,Status_Type.OK,database.data_config.APP_ID));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_PARENT_TABLE,Status_Type.OK,parent_table));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_PARENT_ID,Status_Type.OK,parent_id));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_SORT_BY,Status_Type.OK,sort_by));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_PAGE_CURRENT,Status_Type.OK,page_current));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_PAGE_SIZE,Status_Type.OK,page_size));
+                },
 				async function(call){
                     let option_parent_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,parent_table,Data_Field.ID,Data_Field.PARENT_ID,{title:Data_Field.PARENT});
                     let option_user_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,user_table,Data_Field.ID,Data_Field.USER_ID,{title:Data_Field.USER});
 					let search = Data_Logic.get_search(Review_Table.REVIEW,{parent_id:parent_id},{},page_current,page_size);
 					const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,{foreigns:[option_parent_foreign,option_user_foreign]});
-                    response = biz_response;
                     data = biz_data;
+                    response.messages.push(Response_Logic.get_message(Review_Response.RESPONSE_PARENT_SEARCH,Status_Type.OK,biz_response));
+                    response.messages.push(Response_Logic.get_message(Review_Response.RESPONSE_PARENT_SEARCH_ITEM_COUNT,Status_Type.OK,data.items.length));
 				},
+                //check all
+                async function(call){
+                    if(data.items){
+                        response.messages.push(Response_Logic.get_message(Review_Response.PARENT_SEARCH_CONFIRM,Status_Type.SUCCESS,Review_Logic.get_message_by_response(Review_Response.PARENT_SEARCH_CONFIRM)));
+                    }else{
+                        response.messages.push(Response_Logic.get_message(Review_Response.PARENT_SEARCH_FAIL,Status_Type.SUCCESS,Review_Logic.get_message_by_response(Review_Response.PARENT_SEARCH_FAIL)));
+                    }
+                    response = Response_Logic.get_status(response);
+                },
 			]).then(result => {
 				callback([response,data]);
 			}).catch(err => {
@@ -57,47 +92,35 @@ class Review_Data {
 			});
 		});
 	};
-	//9_review_get 9_get
-    static get = async (database,parent_table,parent_id,sort_by,page_current,page_size) => {
-        return new Promise((callback) => {
-            let response = {};
-            let data = {};
-            async.series([
-                //reviews
-                async function(call){
-                    let query = {parent_id:parent_id,parent_table:parent_table};
-                    let search = Data_Logic.get_search(Review_Table.REVIEW,query,sort_by,page_current,page_size);
-                    let foreign_user = Data_Logic.get_foreign(Data_Value_Type.ONE,Review_Table.USER,Data_Field.ID,Data_Field.USER_ID,{title:'user'});
-                    let option = {foreigns:[foreign_user]};
-                    const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,option);
-                    data.item_count=biz_data.item_count;
-                    data.page_count=biz_data.page_count;
-                    data.search=biz_data.search;
-                    data.reviews=biz_data[Data_Field.ITEMS];
-                },
-            ]).then(result => {
-                callback([response,data]);
-            }).catch(err => {
-                Log.error("Review-Data-List",err);
-                callback([err,[]]);
-            });
-        });
-    };
     //9_review_delete /9_delete
     static delete = async(database,parent_table,parent_id,review_id) => {
         return new Promise((callback) => {
-            let response = {};
+            let response=Response_Logic.get();
             let data = {parent:Data_Logic.get(parent_table,parent_id),review:Data_Logic.get(Review_Table.REVIEW,0)};
             let review = Data_Logic.get(Review_Table.REVIEW,review_id);
             async.series([
+                async function(call) {
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_APP_ID,Status_Type.OK,database.data_config.APP_ID));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_PARENT_TABLE,Status_Type.OK,parent_table));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_PARENT_ID,Status_Type.OK,parent_id));
+                    response.messages.push(Response_Logic.get_message(Review_Response.PARAM_REVIEW_ID,Status_Type.OK,review_id));
+                },
                 //review_delete
                 async function(call){
                     const [biz_response,biz_data] = await Data.delete(database,Review_Table.REVIEW,review.id);
                     data.review = biz_data;
+                    response.messages.push(Response_Logic.get_message(Review_Response.RESPONSE_REVIEW_DELETE,Status_Type.OK,biz_response));
+                    if(!Str.check_is_null(biz_response.status == Status_Type.SUCCESS)){
+                        response.messages.push(Response_Logic.get_message(Review_Response.DELETE_CONFIRM,Status_Type.SUCCESS,Review_Logic.get_message_by_response(Review_Response.DELETE_CONFIRM)));
+                    }else{
+                        response.messages.push(Response_Logic.get_message(Review_Response.DELETE_FAIL,Status_Type.FAIL,Review_Logic.get_message_by_response(Review_Response.DELETE_FAIL)));
+                    }
+                    response = Response_Logic.get_status(response);
                 },
                 async function(call){
                     const [biz_response,biz_data] = await Review_Data.caculate(database,parent_table,parent_id);
                     data.parent = biz_data;
+                    response.messages.push(Response_Logic.get_message(Review_Response.RESPONSE_CACULATE,Status_Type.OK,biz_response));
                 },
             ]).then(result => {
                 callback([response,data]);
@@ -110,7 +133,7 @@ class Review_Data {
     static caculate = (database,parent_table,parent_id) => {
         return new Promise((callback) => {
             let data = {};
-            let response = {};
+            let response=Response_Logic.get();
             let parent = {};
             let reviews = [];
             async.series([
@@ -143,6 +166,7 @@ class Review_Data {
                     parent.rating_avg = parent.rating_count / parent.review_count;
                     const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
                     data.parent = biz_data;
+                    response.messages.push(Response_Logic.get_message(Review_Response.Response_Caculate,Status_Type.OK,biz_response));
                 },
             ]).then(result => {
                 callback([response,parent]);
