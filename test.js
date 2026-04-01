@@ -170,8 +170,8 @@ describe('review_data_delete', function(){ this.timeout(25000);
         let option = {};
         let parent = {};
         let parent_table = Store_Table.PRODUCT;
-        let parent_id = "424";
-        let review_id = "901";
+        let parent_id = "522";
+        let review_id = "752";
         async.series([
             async function(call){
                 const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
