@@ -13,11 +13,11 @@ const {Data_Logic,Data_Field,Data_Value_Type,Data_Response_Field} = require("/ho
 const {Log,Str,Obj,DateTime,Response_Logic,Response_Field,Status_Type}=require("/home/think1/www/doqbox/biz9-framework/biz9-utility/source");
 class Review_Data {
     //9_review_post /9_post
-    static post = async(database,parent_table,parent_id,user_id,post_review,option) => {
+    static post = async(database,parent_table,parent_id,user_table,user_id,post_review,option) => {
         return new Promise((callback) => {
             let response=Response_Logic.get();
             let data = {};
-            let review = Review_Logic.get(parent_table,parent_id,user_id,post_review.title,post_review.comment,post_review.rating);
+            let review = Review_Logic.get(parent_table,parent_id,user_table,user_id,post_review.title,post_review.comment,post_review.rating);
             option = !Obj.check_is_empty(option) ? option : {};
             async.series([
                 async function(call) {
@@ -38,20 +38,17 @@ class Review_Data {
                 async function(call){
                     // -- post caclulate parent --
                     const [biz_response,biz_data] = await Review_Data.caculate(database,parent_table,parent_id);
-                    data.parent = biz_data;
+                    //data.parent = biz_data;
                     response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_PARENT,Status_Type.OK,data.parent,{title:BIZ9_CONFIG.TITLE}));
                 },
 	            async function(call){
                     // -- get review --
                     let option_parent_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,parent_table,Data_Field.ID,Data_Field.PARENT_ID,{title:Data_Field.PARENT});
                     let option_user_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,user_table,Data_Field.ID,Data_Field.USER_ID,{title:Data_Field.USER});
-					let search = Data_Logic.get_search(Review_Table.REVIEW,{parent_id:parent_id},{},page_current,page_size);
-				    const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,{foreigns:[option_parent_foreign,option_user_foreign]});
-                    data = biz_data;
-                    response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_PARENT_SEARCH,Status_Type.OK,biz_response,{title:BIZ9_CONFIG.TITLE}));
-                    response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_PARENT_SEARCH_ITEM_COUNT,Status_Type.OK,data.items.length,{title:BIZ9_CONFIG.TITLE}));
+				    const [biz_response,biz_data] = await Data.get(database,Review_Table.REVIEW,data.review.id,{foreigns:[option_user_foreign,option_parent_foreign]});
+                    data.review = biz_data;
+                    response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_REVIEW,Status_Type.OK,data.review,{title:BIZ9_CONFIG.TITLE}));
 				},
-
                 async function(call){
                     // get response
                     if(!Str.check_is_null(data.review.id)){

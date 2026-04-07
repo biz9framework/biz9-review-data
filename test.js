@@ -123,13 +123,13 @@ describe('review_data_post', function(){ this.timeout(25000);
         // -- USER END -- //
         // -- PARENT START -- //
         // -- new parent start -- //
-        //let parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
+        let parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
         //parent.rating_avg = 0;
         //parent.rating_count = 0;
         //parent.review_count = 0;
         // -- new parent end -- //
         // -- update parent start -- //
-        let parent = Data_Logic.get(Store_Table.PRODUCT,'137');
+        //let parent = Data_Logic.get(Store_Table.PRODUCT,'137');
         // -- update parent end -- //
         // -- PARENT END -- //
         let review = Review_Logic.get_test();
@@ -155,7 +155,7 @@ describe('review_data_post', function(){ this.timeout(25000);
             },
             async function(call){
                 // -- review post
-                const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
+                const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,User_Table.USER,user.id,review);
                 review = biz_data;
             },
         ],
