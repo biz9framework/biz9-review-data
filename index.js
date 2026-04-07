@@ -21,6 +21,7 @@ class Review_Data {
             option = !Obj.check_is_empty(option) ? option : {};
             async.series([
                 async function(call) {
+                    // -- respopnse param
                     response.messages.push(Response_Logic.get_message(Data_Response_Field.PARAM_APP_ID,Status_Type.OK,database.data_config.APP_ID,{title:BIZ9_CONFIG.TITLE}));
                     response.messages.push(Response_Logic.get_message(Data_Response_Field.PARAM_PARENT_ID,Status_Type.OK,parent_id,{title:BIZ9_CONFIG.TITLE}));
                     response.messages.push(Response_Logic.get_message(Data_Response_Field.PARAM_USER_ID,Status_Type.OK,user_id,{title:BIZ9_CONFIG.TITLE}));
@@ -28,20 +29,20 @@ class Review_Data {
                     response.messages.push(Response_Logic.get_message(Review_Response_Field.PARAM_REVIEW,Status_Type.OK,post_review,{title:BIZ9_CONFIG.TITLE}));
                     response.messages.push(Response_Logic.get_message(Data_Response_Field.PARAM_OPTION,Status_Type.OK,option,{title:BIZ9_CONFIG.TITLE}));
                 },
-                //review
                 async function(call){
-                    const [biz_response,biz_data] = await Data.post(database,Review_Table.REVIEW,review);
+                    // -- post review
+                    const [bizrresponse,biz_data] = await Data.post(database,Review_Table.REVIEW,review);
                     data.review = biz_data;
                     response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_REVIEW,Status_Type.OK,data.review,{title:BIZ9_CONFIG.TITLE}));
                 },
-                //parent
                 async function(call){
+                    // post caclulate parent
                     const [biz_response,biz_data] = await Review_Data.caculate(database,parent_table,parent_id);
                     data.parent = biz_data;
                     response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_PARENT,Status_Type.OK,data.parent,{title:BIZ9_CONFIG.TITLE}));
                 },
-                //check all
                 async function(call){
+                    // get response
                     if(!Str.check_is_null(data.review.id)){
                         response.messages.push(Response_Logic.get_message(Response_Field.POST_CONFIRM,Status_Type.SUCCESS,Review_Logic.get_message_by_response_field(Response_Field.POST_CONFIRM,{title:BIZ9_CONFIG.TITLE})));
                     }else{
@@ -74,7 +75,7 @@ class Review_Data {
                     let option_parent_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,parent_table,Data_Field.ID,Data_Field.PARENT_ID,{title:Data_Field.PARENT});
                     let option_user_foreign = Data_Logic.get_foreign(Data_Value_Type.ONE,user_table,Data_Field.ID,Data_Field.USER_ID,{title:Data_Field.USER});
 					let search = Data_Logic.get_search(Review_Table.REVIEW,{parent_id:parent_id},{},page_current,page_size);
-					const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,{foreigns:[option_parent_foreign,option_user_foreign]});
+				    const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,search.sort_by,search.page_current,search.page_size,{foreigns:[option_parent_foreign,option_user_foreign]});
                     data = biz_data;
                     response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_PARENT_SEARCH,Status_Type.OK,biz_response,{title:BIZ9_CONFIG.TITLE}));
                     response.messages.push(Response_Logic.get_message(Review_Response_Field.RESPONSE_PARENT_SEARCH_ITEM_COUNT,Status_Type.OK,data.items.length,{title:BIZ9_CONFIG.TITLE}));

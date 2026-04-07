@@ -23,7 +23,7 @@ const {Review_Data}=require("./index");
 - review_data_parent_search
 */
 /* --- TEST CONFIG START --- */
-const APP_ID = 'test-stage-march29';
+const APP_ID = 'test-stage-april';
 const DATA_CONFIG ={
     APP_ID:APP_ID,
     MONGO_IP:'0.0.0.0',
@@ -61,13 +61,11 @@ describe('connect', function(){ this.timeout(25000);
                 //-->
                 let print_test = true;
                 // -- ITEM-POST -- START
-                /*
                 //let parent = User_Logic.get_test_user();
-                let parent = Data_Logic.get(Review_Table.BLANK,0,{data:{field_1:'field_1'+Num.get_id(),field_2:'field_2'+Num.get_id()}});
+                //let parent = Data_Logic.get(Review_Table.BLANK,0,{data:{field_1:'field_1'+Num.get_id(),field_2:'field_2'+Num.get_id()}});
                 //let sub_items = Data_Logic.get(Store_Table.PRODUCT,0,{test:true,count:20,data:Store_Logic.get_test_product()});
-                const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
+                //const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
                 //const [biz_response,biz_data] = await Data.post_items(database,sub_items);
-                */
                 // -- ITEM-POST -- END
                 //-- REVIEW-POST START --//
                 /*
@@ -78,10 +76,12 @@ describe('connect', function(){ this.timeout(25000);
                 */
                 //
                 //-- REVIEW-DELETE START --//
+                /*
                 let review_id = '728';
                 let user = Data_Logic.get(User_Table.USER,'522');
                 let parent = Data_Logic.get(Review_Table.BLANK,'705');
                 const [biz_response,biz_data] = await Review_Data.delete(database,parent.table,parent.id,review_id);
+                */
                 //-- REVIEW-DELETE END --//
                 //
                 //-- REVIEW-GET START --//
@@ -113,48 +113,60 @@ describe('review_data_post', function(){ this.timeout(25000);
         let database = {};
         let data = {};
         let option = {};
-        let parent = {};
+        // -- USER START -- //
+        // -- new user start --
         let user = User_Logic.get_test_user();
+        // -- new user end --
+        // -- update user start //
+        //let user = Data_Logic.get(User_Table.USER,'170');
+        // -- update user end //
+        // -- USER END -- //
+        // -- PARENT START -- //
+        // -- new parent start -- //
+        //let parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
+        //parent.rating_avg = 0;
+        //parent.rating_count = 0;
+        //parent.review_count = 0;
+        // -- new parent end -- //
+        // -- update parent start -- //
+        let parent = Data_Logic.get(Store_Table.PRODUCT,'134');
+        // -- update parent end -- //
+        // -- PARENT END -- //
         let review = Review_Logic.get_test();
         async.series([
             async function(call){
+                // -- database --
                 const [biz_response,biz_data] = await Database.get(DATA_CONFIG);
                 database = biz_data;
             },
             async function(call){
-                // -- new-product-start --
-
-                parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
-                parent.rating_avg = 0;
-                parent.rating_count = 0;
-                parent.review_count = 0;
-                const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
-                parent = biz_data;
-
-                // -- new-product-end --
-                // -- update-product-start --
-                /*
-                parent = Data_Logic.get(Project_Table.PRODUCT,'59');
-                const [biz_response,biz_data] = await Data.get(database,parent.table,parent.id);
-                parent = biz_data;
-                */
-
-
-
-                // -- update-product-start --
+                // post  user --
+                if(Str.check_is_null(user.id)){
+                    const [biz_response,biz_data] = await Data.post(database,user.table,user);
+                    user = biz_data;
+                }
             },
             async function(call){
-                //user
-                const [biz_response,biz_data] = await Data.post(database,user.table,user);
-                user = biz_data;
+                // -- post parent --
+                if(Str.check_is_null(parent.id)){
+                    const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
+                    parent = biz_data;
+                }
             },
-           async function(call){
+            async function(call){
+                // -- review post
                 const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,user.id,review);
-               Log.w('biz_data',biz_data);
-               Log.w('biz_response',biz_response);
+                review = biz_data;
             },
         ],
             function(error, result){
+                Log.w('biz_user',user);
+                Log.w('biz_parent',parent);
+                Log.w('biz_review',review);
+
+                console.log('-- user_id -- '+ user.id);
+                console.log('-- parent_id -- '+ parent.id);
+                console.log('-- review_id -- '+ review.review.id);
                 console.log('REVIEW-DATA-POST-DONE');
                 done();
             });
@@ -200,7 +212,7 @@ describe('review_data_parent_search', function(){ this.timeout(25000);
         let database = {};
         let data = {};
         let option = {};
-        let parent_id = '59';
+        let parent_id = '134';
         let parent_table = Project_Table.PRODUCT;
         let user_table = Project_Table.USER;
         async.series([
