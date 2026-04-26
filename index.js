@@ -8,7 +8,7 @@ const async = require('async');
 const {Config}=require('./project');
 BIZ9_CONFIG=Config.get_biz9_config();
 const {Database,Data}=require("/home/think1/www/doqbox/biz9-framework/biz9-data/source");
-const {Review_Field,Review_Table,Review_Logic,Review_Response_Field}=require("/home/think1/www/doqbox/biz9-framework/biz9-review/source");
+const {Review_Field,Review_Stat,Review_Table,Review_Logic,Review_Response_Field}=require("/home/think1/www/doqbox/biz9-framework/biz9-review/source");
 const {Data_Logic,Data_Field,Data_Value_Type,Data_Response_Field} = require("/home/think1/www/doqbox/biz9-framework/biz9-data-logic/source");
 const {Log,Str,Obj,DateTime,Response_Logic,Response_Field,Status_Type}=require("/home/think1/www/doqbox/biz9-framework/biz9-utility/source");
 class Review_Data {
@@ -141,12 +141,13 @@ class Review_Data {
             });
         });
     };
-    //9_parent_review_caculate 9_parent_caculate
+    //9_parent_review_caculate 9_parent_caculate 9_caculate
     static caculate = (database,parent_table,parent_id) => {
         return new Promise((callback) => {
             let data = {};
             let response=Response_Logic.get();
             let parent = {};
+            let post_review_count_total = 0;
             let reviews = [];
             async.series([
                 async function(call){
@@ -158,24 +159,24 @@ class Review_Data {
                     //reviews
                     let search = Data_Logic.get_search(Review_Table.REVIEW,{parent_id:parent_id},{},1,0);
                     const [biz_response,biz_data] = await Data.search(database,search.table,search.filter,{},search.page_current,search.page_size);
-                    reviews = biz_data.items;
+                    reviews = biz_data.items
+                    post_review_count_total = biz_data.items.length;
                 },
                 async function(call){
                     //caculate
-                    let rating_count = 0;
-                    let review_count = reviews.length;
+                    let post_review_rating_count_total = 0;
                     let rating_avg = 0;
-                    if(review_count > 0){
+                    if(post_review_count_total > 0){
                         for(const review of reviews){
                             if(Str.check_is_null(review.rating)){
-                                review.rating = 0;
+                                review[Review_Field.RATING] = 0;
                             }
-                            rating_count = parseInt(rating_count) + parseInt(review.rating);
+                            post_review_rating_count_total = parseInt(post_review_rating_count_total) + parseInt(review[Review_Field.RATING]);
                         }
                     }
-                    parent.rating_count = rating_count;
-                    parent.review_count = review_count;
-                    parent.rating_avg = parent.rating_count / parent.review_count;
+                    parent[Review_Field.REVIEW_RATING_COUNT] = post_review_rating_count_total;
+                    parent[Review_Field.REVIEW_COUNT] = post_review_count_total ;
+                    parent[Review_Field.REVIEW_RATING_AVG] = parent[Review_Field.REVIEW_RATING_COUNT] / parent[Review_Field.REVIEW_COUNT];
                     const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
                     data.parent = biz_data;
                     response.messages.push(Response_Logic.get_message(Review_Response_Field.Response_Caculate,Status_Type.OK,biz_response,{title:BIZ9_CONFIG.TITLE}));

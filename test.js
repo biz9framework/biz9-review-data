@@ -115,21 +115,21 @@ describe('review_data_post', function(){ this.timeout(25000);
         let option = {};
         // -- USER START -- //
         // -- new user start --
-        let user = User_Logic.get_test_user();
+        //let user = User_Logic.get_test_user();
         // -- new user end --
         // -- update user start //
-        //let user = Data_Logic.get(User_Table.USER,'170');
+        let user = Data_Logic.get(User_Table.USER,'69ed62dda37b54bc1ed9b007');
         // -- update user end //
         // -- USER END -- //
         // -- PARENT START -- //
         // -- new parent start -- //
-        let parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
+        //let parent = Store_Logic.get_test_product({title:'Product '+Str.get_id()});
         //parent.rating_avg = 0;
         //parent.rating_count = 0;
         //parent.review_count = 0;
         // -- new parent end -- //
         // -- update parent start -- //
-        //let parent = Data_Logic.get(Store_Table.PRODUCT,'137');
+        let parent = Data_Logic.get(Store_Table.PRODUCT,'69ed60d68eaebeccc505bd47');
         // -- update parent end -- //
         // -- PARENT END -- //
         let review = Review_Logic.get_test();
@@ -140,21 +140,21 @@ describe('review_data_post', function(){ this.timeout(25000);
                 database = biz_data;
             },
             async function(call){
-                // post  user --
+                // -- post-user --
                 if(Str.check_is_null(user.id)){
                     const [biz_response,biz_data] = await Data.post(database,user.table,user);
                     user = biz_data;
                 }
             },
             async function(call){
-                // -- post parent --
+                // -- post-parent --
                 if(Str.check_is_null(parent.id)){
                     const [biz_response,biz_data] = await Data.post(database,parent.table,parent);
                     parent = biz_data;
                 }
             },
             async function(call){
-                // -- review post
+                // -- review-post --
                 const [biz_response,biz_data] = await Review_Data.post(database,parent.table,parent.id,User_Table.USER,user.id,review);
                 review = biz_data;
             },
