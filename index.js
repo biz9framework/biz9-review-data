@@ -12,6 +12,7 @@ const {Data_Logic,Data_Field,Data_Value_Type,Data_Response_Field} = require("/ho
 const {Log,Str,Obj,DateTime,Response_Logic,Response_Field,Status_Type}=require("/home/think1/www/doqbox/biz9-framework/biz9-utility/source");
 class Review_Data {
     /* - 9_DEFINE -
+     * -- METHODS --
      * post / (database,parent_table,parent_id,user_table,user_id,post_review,option)
      * parent_search / (database,user_table,parent_table,parent_id,sort_by,page_current,page_size)
      * delete / (database,parent_table,parent_id,review_id)
